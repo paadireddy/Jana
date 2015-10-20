@@ -68,7 +68,6 @@ def crawl(domain_name, max_depth):
     links_to_crawl = Set([seed_url])
     visited_links = Set([])
     current_depth = 1
-    
     driver = webdriver.Firefox()
     try:
         # do while there are enough links to crawl and maximum depth is not reached
