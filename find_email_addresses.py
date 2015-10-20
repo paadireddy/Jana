@@ -55,9 +55,7 @@ def lookup_href_attribute(child_urls, visited_links, email_list, href_attribute,
                 #Regex for email
                 match = re.search(r'(\w+[.|\w])*@(\w+[.])*\w+', mail[1])
                 if match:
-                    print 'from href ... '
-                    print match.group()
-                email_list.add(match.group())
+                    email_list.add(match.group())
             # Checking if the link is valid 
             elif check_valid_link(href_attribute, visited_links, child_urls):
                 child_urls.add(href_attribute)
@@ -70,7 +68,6 @@ def crawl(domain_name, max_depth):
     links_to_crawl = Set([seed_url])
     visited_links = Set([])
     current_depth = 1
-    print max_depth
     
     driver = webdriver.Firefox()
     try:
@@ -120,6 +117,7 @@ def write_output(email_list):
         output_file = open("emails.txt", "w")
         for email in email_list:
             output_file.write(str(email)+'\n')
+            print str(email)
     except IOError:
         print "Exception: Can't write to Emails.txt"
         
