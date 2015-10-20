@@ -68,7 +68,6 @@ def crawl(domain_name, max_depth):
     links_to_crawl = Set([seed_url])
     visited_links = Set([])
     current_depth = 1
-    print max_depth
     
     driver = webdriver.Firefox()
     try:
