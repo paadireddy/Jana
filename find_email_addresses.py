@@ -55,8 +55,6 @@ def lookup_href_attribute(child_urls, visited_links, email_list, href_attribute,
                 #Regex for email
                 match = re.search(r'(\w+[.|\w])*@(\w+[.])*\w+', mail[1])
                 if match:
-                    print 'from href ... '
-                    print match.group()
                 email_list.add(match.group())
             # Checking if the link is valid 
             elif check_valid_link(href_attribute, visited_links, child_urls):
@@ -73,9 +71,6 @@ def crawl(domain_name, max_depth):
     print max_depth
     
     driver = webdriver.Firefox()
-    now = datetime.datetime.now()
-    print "Before while loop"
-    print str(now)
     try:
         # do while there are enough links to crawl and maximum depth is not reached
         while len(links_to_crawl)!=0 and current_depth<= int(max_depth):
@@ -105,9 +100,6 @@ def crawl(domain_name, max_depth):
         write_output(email_list);
         
     driver.close()
-    print "End of while loop ...."
-    now = datetime.datetime.now()
-    print str(now)
     write_output(email_list)
     
 #This method checks if the given URL can be crawled or not    
