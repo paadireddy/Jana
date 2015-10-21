@@ -10,8 +10,10 @@ import sys
 import datetime
 import tldextract
 import re
+from urlparse import urljoin    
 
 email_list=Set([]) 
+child_urls = Set([])
 
 def main():
     try:
@@ -39,42 +41,47 @@ def extract_soup(driver, current_link):
 
 
 # This method uses the information from crawl and looks up the href attribute value for necessary information
-def lookup_href_attribute(child_urls, visited_links, email_list, href_attribute, domain):
+def lookup_href_attribute(visited_links, href_attribute, seed_url):
     mailTag="mailto"
+    global email_list
+    global child_urls
     if href_attribute:
-        #Extracting top level domain information from the given domain
-        given_domain_ext = tldextract.extract(domain)
-        #Extracting top level domain information from the current link
-        href_ext = tldextract.extract(href_attribute)
-        #Matching the domain name in the links and emailIDs found on the webpage
-        domain_found = (str(given_domain_ext.domain) == str(href_ext.domain)) and (str(given_domain_ext.suffix) == str(href_ext.suffix))
-        if domain_found:  
-            # Extracting emails 
-            if mailTag in str(href_attribute):
-                mail = href_attribute.split(":")
-                #Regex for email
-                match = re.search(r'(\w+[.|\w])*@(\w+[.])*\w+', mail[1])
-                if match:
-                    email_list.add(match.group())
-            # Checking if the link is valid 
-            elif check_valid_link(href_attribute, visited_links, child_urls):
+        if mailTag in str(href_attribute):
+            mail = href_attribute.split(":")
+            #Regex for email
+            match = re.search(r'(\w+[.|\w])*@(\w+[.])*\w+', mail[1])
+            if match:
+                email_list.add(match.group())
+                print match.group()
+        else:
+            #Extracting top level domain information from the given domain
+            given_domain_ext = tldextract.extract(seed_url)
+            #Extracting top level domain information from the current link
+            href_ext = tldextract.extract(href_attribute)
+            #Matching the domain name in the links and emailIDs found on the webpage
+            domain_found = (str(given_domain_ext.domain) == str(href_ext.domain)) and (str(given_domain_ext.suffix) == str(href_ext.suffix))
+            #Constructing absolute URL
+            href_attribute = urljoin(seed_url, href_attribute)
+            if domain_found and href_attribute not in visited_links and href_attribute not in child_urls:
                 child_urls.add(href_attribute)
+                
 
 # This method takes the given domain and maximum depth and performs a web crawl
 def crawl(domain_name, max_depth):
     
-    child_urls = Set([]) 
     seed_url = "http://{}/".format(domain_name)
     links_to_crawl = Set([seed_url])
     visited_links = Set([])
     current_depth = 1
+    global email_list
+    global child_urls
     
     driver = webdriver.Firefox()
     try:
         # do while there are enough links to crawl and maximum depth is not reached
         while len(links_to_crawl)!=0 and current_depth<= int(max_depth):
             current_link = links_to_crawl.pop()
-            if check_valid_link(current_link, visited_links):
+            if current_link not in visited_links:
                 content = extract_soup(driver, current_link)
                 # Skipping links with rel as canonical
                 for link in content.findAll('link', rel="canonical"):
@@ -84,9 +91,8 @@ def crawl(domain_name, max_depth):
                 for tag in anchor_tags:
                     # Fetching href attribute value for every anchor tag
                     href_attribute = tag.get('href')
-                    lookup_href_attribute(child_urls, \
-                                             visited_links, email_list, \
-                                             href_attribute, domain_name)
+                    lookup_href_attribute(visited_links,  \
+                                             href_attribute, seed_url)
                 visited_links.add(current_link)
                 
             if len(links_to_crawl) == 0:
@@ -95,23 +101,16 @@ def crawl(domain_name, max_depth):
                 current_depth = current_depth + 1 
                 child_urls = Set([])
                 
-    except Exception:
-        write_output(email_list);
-        
+    except Exception as e:
+        print e
+        write_output();
+    print "current_depth:...."+str(current_depth-1)   
     driver.close()
-    write_output(email_list)
+    write_output()
     
-#This method checks if the given URL can be crawled or not    
-def check_valid_link(link,urls1,urls2=None):
-    
-    if urls2 is None:
-        return link not in urls1
-    else:
-        return link not in urls1 and link not in urls2
 
-
-
-def write_output(email_list):
+def write_output():
+    global email_list
     try:
         #Writing all emails collected to a file called emails.txt
         output_file = open("emails.txt", "w")
