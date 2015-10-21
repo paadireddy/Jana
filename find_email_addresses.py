@@ -54,13 +54,12 @@ def lookup_href_attribute(visited_links, href_attribute, seed_url):
                 email_list.add(match.group())
                 print match.group()
         else:
-            #Extracting top level domain information from the given domain
+        #Extracting top level domain information from the given domain
             given_domain_ext = tldextract.extract(seed_url)
-            #Extracting top level domain information from the current link
+        #Extracting top level domain information from the current link
             href_ext = tldextract.extract(href_attribute)
-            #Matching the domain name in the links and emailIDs found on the webpage
+        #Matching the domain name in the links and emailIDs found on the webpage
             domain_found = (str(given_domain_ext.domain) == str(href_ext.domain)) and (str(given_domain_ext.suffix) == str(href_ext.suffix))
-            #Constructing absolute URL
             href_attribute = urljoin(seed_url, href_attribute)
             if domain_found and href_attribute not in visited_links and href_attribute not in child_urls:
                 child_urls.add(href_attribute)
